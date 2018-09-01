@@ -1054,7 +1054,7 @@ void backward_prop(struct NNet *nnet,\
         memset(grad1_upper, 0, sizeof(float)*maxLayerSize);
         memset(grad1_lower, 0, sizeof(float)*maxLayerSize);
 
-        for (j=0;j<maxLayerSize;j++) {
+        for (j=0;j<nnet->layerSizes[layer+1];j++) {
             if(R[layer][j] == 0){
                 grad_upper[j] = grad_lower[j] = 0;
             }
@@ -1065,7 +1065,7 @@ void backward_prop(struct NNet *nnet,\
 
             if (layer != 0) {
 
-                for (i=0;i<maxLayerSize;i++) {
+                for (i=0;i<nnet->layerSizes[layer];i++) {
 
                     if (weights[j][i] >= 0) {
                         grad1_upper[i] += weights[j][i]*grad_upper[j]; 
