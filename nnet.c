@@ -11,18 +11,79 @@
 
 
 #include "nnet.h"
-
+#include <stdlib.h>
+#include <string.h>
 
 int PROPERTY = 5;
 char *LOG_FILE = "logs/log.txt";
 FILE *fp;
 
+
+void allocFloatVec(float **f,  const uint size) {
+    *f = (float *) calloc(size, sizeof(float));
+    if (!f) {
+        perror(__FUNCTION__);
+        exit(1);
+    }
+}
+
+void allocIntArray(int ***i, const uint row, const uint col) {
+    int j;
+
+    *i = (int **) calloc(row, sizeof(int *));
+    if (!(*i)) {
+        perror(__FUNCTION__);
+        exit(1);
+    }
+    for(j = 0; j < row; j++) {
+        (*i)[j] = (int *) calloc(col, sizeof(int));
+        if (!((*i)[j])) {
+            perror(__FUNCTION__);
+            exit(1);
+        }
+    }
+}
+
+void allocFloatArray(float ***f, const uint row, const uint col) {
+    int i;
+
+    *f = (float **) calloc(row, sizeof(float*));
+    if (!(*f)) {
+        perror(__FUNCTION__);
+        exit(1);
+    }
+
+    for(i = 0; i < row; i++) {
+        allocFloatVec(&((*f)[i]), col);
+    }
+}
+
+void freeFloatArray(float ***f, const uint row) {
+    int i;
+
+    for(i = 0; i < row; i++) {
+        free((*f)[i]);
+    }
+    free(*f);
+}
+
+void freeIntArray(int **i, const uint row) {
+    int k;
+
+    for(k = 0; k < row; k++) {
+        free(i[k]);
+    }
+    free(i);
+}
+
 /*
  * Load_network is a function modified from Reluplex
- * It takes in a nnet filename with path and load the 
+ * It takes in a nnet filename with path and load the
  * network from the file
  * Outputs the NNet instance of loaded network.
  */
+
+
 struct NNet *load_network(const char* filename, int target)
 {
 
@@ -482,10 +543,14 @@ int forward_prop_interval(struct NNet *network,\
     int outputSize   = nnet->outputSize;
     int maxLayerSize   = nnet->maxLayerSize;
 
-    float z_upper[nnet->maxLayerSize];
-    float z_lower[nnet->maxLayerSize];
-    float a_upper[nnet->maxLayerSize];
-    float a_lower[nnet->maxLayerSize];
+    float *z_upper, *z_lower, *a_upper, *a_lower, *temp_upper, *temp_lower;
+
+    allocFloatVec(&z_upper, nnet->maxLayerSize);
+    allocFloatVec(&z_lower, nnet->maxLayerSize);
+    allocFloatVec(&a_upper, nnet->maxLayerSize);
+    allocFloatVec(&a_lower, nnet->maxLayerSize);
+    allocFloatVec(&temp_upper, maxLayerSize*maxLayerSize);
+    allocFloatVec(&temp_lower, maxLayerSize*maxLayerSize);
 
     struct Matrix Z_upper = {z_upper, 1, inputSize};
     struct Matrix A_upper = {a_upper, 1, inputSize};
@@ -502,8 +567,6 @@ int forward_prop_interval(struct NNet *network,\
     memcpy(Z_lower.data, input->lower_matrix.data,\
             nnet->inputSize*sizeof(float));
 
-    float temp_upper[maxLayerSize*maxLayerSize];
-    float temp_lower[maxLayerSize*maxLayerSize];
     struct Matrix Temp_upper = {temp_upper,maxLayerSize,maxLayerSize};
     struct Matrix Temp_lower = {temp_upper,maxLayerSize,maxLayerSize};
 
@@ -559,6 +622,13 @@ int forward_prop_interval(struct NNet *network,\
     output->upper_matrix.col = output->lower_matrix.col\
                 = Z_upper.col;
 
+    free(temp_upper);
+    free(temp_lower);
+    free(z_upper);
+    free(z_lower);
+    free(a_upper);
+    free(a_lower);
+
     return 1;
 
 }
@@ -611,12 +681,9 @@ void normalize_input(struct NNet *nnet, struct Matrix *input)
 
 void normalize_input_interval(struct NNet *nnet, struct Interval *input)
 {
-
     normalize_input(nnet, &input->upper_matrix);
     normalize_input(nnet, &input->lower_matrix);
-
 }
-
 
 /*
  * Concrete forward propagation with openblas
@@ -832,16 +899,14 @@ int evaluate_interval_equation(struct NNet *network,\
 
     float ****matrix = nnet->matrix;
 
-    // equation is the temp equation for each layer
-    float equation_upper[maxLayerSize][inputSize+1];
-    float equation_lower[maxLayerSize][inputSize+1];
-    float new_equation_upper[maxLayerSize][inputSize+1];
-    float new_equation_lower[maxLayerSize][inputSize+1];
+    float **equation_upper, **equation_lower, **new_equation_upper, **new_equation_lower;
 
-    memset(equation_upper,0,sizeof(float)*\
-                        (inputSize+1)*maxLayerSize);
-    memset(equation_lower,0,sizeof(float)*\
-                        (inputSize+1)*maxLayerSize);
+
+    allocFloatArray(&equation_upper, maxLayerSize, inputSize+1);
+    allocFloatArray(&equation_lower, maxLayerSize, inputSize+1);
+    allocFloatArray(&new_equation_upper, maxLayerSize, inputSize+1);
+    allocFloatArray(&new_equation_lower, maxLayerSize, inputSize+1);
+
 
     float tempVal_upper, tempVal_lower;
 
@@ -853,10 +918,8 @@ int evaluate_interval_equation(struct NNet *network,\
     for (layer=0;layer<(numLayers);layer++) {
 
         for (i=0;i<maxLayerSize;i++) {
-            memset(new_equation_upper, 0, sizeof(float)*\
-                                (inputSize+1)*maxLayerSize);
-            memset(new_equation_lower, 0, sizeof(float)*\
-                                (inputSize+1)*maxLayerSize);
+            memset(new_equation_upper[i], 0, sizeof(float)*(inputSize+1));
+            memset(new_equation_lower[i], 0, sizeof(float)*(inputSize+1));
         }
 
         for (i=0;i<nnet->layerSizes[layer+1];i++) {
@@ -951,6 +1014,11 @@ int evaluate_interval_equation(struct NNet *network,\
 
     }
 
+    freeFloatArray(&equation_lower, maxLayerSize);
+    freeFloatArray(&equation_upper, maxLayerSize);
+    freeFloatArray(&new_equation_lower, maxLayerSize);
+    freeFloatArray(&new_equation_upper, maxLayerSize);
+
     return 1;
 
 }
@@ -963,9 +1031,8 @@ int evaluate_interval_equation(struct NNet *network,\
  */
 void backward_prop(struct NNet *nnet,\
                 struct Interval *grad,\
-                int R[][nnet->maxLayerSize])
+                int **R)
 {
-
     int i, j, layer;
     int numLayers    = nnet->numLayers;
     int inputSize    = nnet->inputSize;
@@ -988,7 +1055,6 @@ void backward_prop(struct NNet *nnet,\
         memset(grad1_lower, 0, sizeof(float)*maxLayerSize);
 
         for (j=0;j<maxLayerSize;j++) {
-
             if(R[layer][j] == 0){
                 grad_upper[j] = grad_lower[j] = 0;
             }
@@ -1014,7 +1080,6 @@ void backward_prop(struct NNet *nnet,\
                 
             }
             else {
-
                 for (i=0;i<inputSize;i++) {
 
                     if (weights[j][i] >= 0) {
@@ -1043,7 +1108,6 @@ void backward_prop(struct NNet *nnet,\
         }
 
     }
-
 }
 
 
@@ -1051,6 +1115,11 @@ void backward_prop(struct NNet *nnet,\
  * Symbolic interval propagation with for openblas.
  * Takes in network and input interval.
  * Outputs the estimated output range. 
+ */
+/*
+ * Symbolic interval propagation with for openblas.
+ * Takes in network and input interval.
+ * Outputs the estimated output range.
  */
 int forward_prop_interval_equation(struct NNet *network,\
                                 struct Interval *input,\
@@ -1066,14 +1135,26 @@ int forward_prop_interval_equation(struct NNet *network,\
     int outputSize   = nnet->outputSize;
     int maxLayerSize   = nnet->maxLayerSize;
 
-    int R[numLayers][maxLayerSize];
-    memset(R, 0, sizeof(float)*numLayers*maxLayerSize);
+    //int R[numLayers][maxLayerSize];
+    //memset(R, 0, sizeof(float)*numLayers*maxLayerSize);
+
+    int **R;
+    float *equation_upper, *equation_lower, *new_equation_upper, *new_equation_lower;
+
+
+    allocIntArray(&R, numLayers, maxLayerSize);
+    allocFloatVec(&equation_upper, (inputSize+1)*maxLayerSize);
+    allocFloatVec(&equation_lower, (inputSize+1)*maxLayerSize);
+    allocFloatVec(&new_equation_upper, (inputSize+1)*maxLayerSize);
+    allocFloatVec(&new_equation_lower, (inputSize+1)*maxLayerSize);
 
     /* equation is the temp equation for each layer */
+    /*
     float equation_upper[(inputSize+1)*maxLayerSize];
     float equation_lower[(inputSize+1)*maxLayerSize];
     float new_equation_upper[(inputSize+1)*maxLayerSize];
     float new_equation_lower[(inputSize+1)*maxLayerSize];
+     */
 
     memset(equation_upper,0,sizeof(float)*\
                         (inputSize+1)*maxLayerSize);
@@ -1081,18 +1162,18 @@ int forward_prop_interval_equation(struct NNet *network,\
                         (inputSize+1)*maxLayerSize);
 
     struct Interval equation_inteval = {
-            (struct Matrix){(float*)equation_lower,\
+        (struct Matrix){(float*)equation_lower,\
             inputSize+1, inputSize},
-            (struct Matrix){(float*)equation_upper,\
+        (struct Matrix){(float*)equation_upper,\
             inputSize+1, inputSize}
-        };
+    };
 
     struct Interval new_equation_inteval = {
-            (struct Matrix){(float*)new_equation_lower,\
+        (struct Matrix){(float*)new_equation_lower,\
             inputSize+1, maxLayerSize},\
             (struct Matrix){(float*)new_equation_upper,\
             inputSize+1, maxLayerSize}
-        };                                       
+    };
 
     float tempVal_upper=0.0, tempVal_lower=0.0;
     float upper_s_lower=0.0;
@@ -1103,18 +1184,26 @@ int forward_prop_interval_equation(struct NNet *network,\
     }
 
     for (layer=0;layer<(numLayers);layer++) {
-        
-        memset(new_equation_upper, 0, sizeof(float)*(inputSize+1)*maxLayerSize);
-        memset(new_equation_lower, 0, sizeof(float)*(inputSize+1)*maxLayerSize);
-        
+
+        float *p, *n;
         struct Matrix weights = nnet->weights[layer];
         struct Matrix bias = nnet->bias[layer];
 
+        allocFloatVec(&p, weights.col*weights.row);
+        allocFloatVec(&n, weights.col*weights.row);
+
+
+        memset(new_equation_upper, 0, sizeof(float)*(inputSize+1)*maxLayerSize);
+        memset(new_equation_lower, 0, sizeof(float)*(inputSize+1)*maxLayerSize);
+
+
+        /*
         float p[weights.col*weights.row];
         float n[weights.col*weights.row];
 
         memset(p, 0, sizeof(float)*weights.col*weights.row);
         memset(n, 0, sizeof(float)*weights.col*weights.row);
+        */
 
         struct Matrix pos_weights = {p, weights.row, weights.col};
         struct Matrix neg_weights = {n, weights.row, weights.col};
@@ -1139,7 +1228,7 @@ int forward_prop_interval_equation(struct NNet *network,\
                         &new_equation_inteval.lower_matrix);
         matmul_with_bias(&equation_inteval.upper_matrix, &neg_weights,\
                         &new_equation_inteval.lower_matrix);
-        
+
         for (i=0; i < nnet->layerSizes[layer+1]; i++)
         {
             tempVal_upper = tempVal_lower = 0.0;
@@ -1198,7 +1287,7 @@ int forward_prop_interval_equation(struct NNet *network,\
                 }
 
             }
-            
+
             new_equation_lower[inputSize+i*(inputSize+1)] += bias.data[i];
             new_equation_upper[inputSize+i*(inputSize+1)] += bias.data[i];
 
@@ -1268,9 +1357,16 @@ int forward_prop_interval_equation(struct NNet *network,\
                     =  new_equation_inteval.lower_matrix.row;
         equation_inteval.lower_matrix.col = equation_inteval.upper_matrix.col\
                     = new_equation_inteval.lower_matrix.col;
+        free(p);
+        free(n);
     }
 
     backward_prop(nnet, grad, R);
+    freeIntArray(R, numLayers);
+    free(new_equation_lower);
+    free(new_equation_upper);
+    free(equation_lower);
+    free(equation_upper);
 
     return 1;
 

@@ -133,7 +133,7 @@ int forward_prop_interval_equation(struct NNet *network, struct Interval *input,
  * The back prop to calculate the gradient
  * 0.000249 sec for one run with one core
 */
-void backward_prop(struct NNet *nnet, struct Interval *grad, int R[][nnet->maxLayerSize]);
+void backward_prop(struct NNet *nnet, struct Interval *grad, int **R);
 
 
 #endif

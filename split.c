@@ -12,7 +12,7 @@
 #include "split.h"
 
 #define AVG_WINDOW 5
-#define MAX_THREAD 56
+#define MAX_THREAD 5
 #define MIN_DEPTH_PER_THREAD 5 
 
 int NEED_PRINT = 0;
@@ -514,7 +514,6 @@ int direct_run_check(struct NNet *nnet,\
     pthread_mutex_unlock(&lock);
 
     forward_prop_interval_equation(nnet, input, output, grad);
-
     int isOverlap = check_functions(nnet, output);
 
     if (NEED_PRINT) {
