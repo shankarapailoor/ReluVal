@@ -18,63 +18,38 @@ int PROPERTY = 5;
 char *LOG_FILE = "logs/log.txt";
 FILE *fp;
 
+#define AllocVec(type, ptr, size) \
+do { \
+    *ptr = (type *) calloc(size, sizeof(type)); \
+    if (!(*ptr)) { \
+        perror("calloc"); \
+        exit(1); \
+    } \
+} while(0)\
 
-void allocFloatVec(float **f,  const uint size) {
-    *f = (float *) calloc(size, sizeof(float));
-    if (!f) {
-        perror(__FUNCTION__);
-        exit(1);
-    }
-}
+#define AllocArray(type, ptr, row, col) \
+do { \
+    int j; \
+    *ptr = (type **) calloc(row, sizeof(type *)); \
+    if (!(*ptr)) { \
+        perror(__FUNCTION__); \
+        exit(1); \
+    } \
+    for(j = 0; j < row; j++) { \
+        AllocVec(type, &((*ptr)[j]), col); \
+    } \
+} while(0)\
 
-void allocIntArray(int ***i, const uint row, const uint col) {
-    int j;
+#define FreeArray(ptr, row) \
+do { \
+    int i; \
+    for(i = 0; i < row; i++) { \
+        free((*ptr)[i]); \
+    } \
+    free(*ptr); \
+} while(0)\
 
-    *i = (int **) calloc(row, sizeof(int *));
-    if (!(*i)) {
-        perror(__FUNCTION__);
-        exit(1);
-    }
-    for(j = 0; j < row; j++) {
-        (*i)[j] = (int *) calloc(col, sizeof(int));
-        if (!((*i)[j])) {
-            perror(__FUNCTION__);
-            exit(1);
-        }
-    }
-}
 
-void allocFloatArray(float ***f, const uint row, const uint col) {
-    int i;
-
-    *f = (float **) calloc(row, sizeof(float*));
-    if (!(*f)) {
-        perror(__FUNCTION__);
-        exit(1);
-    }
-
-    for(i = 0; i < row; i++) {
-        allocFloatVec(&((*f)[i]), col);
-    }
-}
-
-void freeFloatArray(float ***f, const uint row) {
-    int i;
-
-    for(i = 0; i < row; i++) {
-        free((*f)[i]);
-    }
-    free(*f);
-}
-
-void freeIntArray(int **i, const uint row) {
-    int k;
-
-    for(k = 0; k < row; k++) {
-        free(i[k]);
-    }
-    free(i);
-}
 
 /*
  * Load_network is a function modified from Reluplex
@@ -545,12 +520,12 @@ int forward_prop_interval(struct NNet *network,\
 
     float *z_upper, *z_lower, *a_upper, *a_lower, *temp_upper, *temp_lower;
 
-    allocFloatVec(&z_upper, nnet->maxLayerSize);
-    allocFloatVec(&z_lower, nnet->maxLayerSize);
-    allocFloatVec(&a_upper, nnet->maxLayerSize);
-    allocFloatVec(&a_lower, nnet->maxLayerSize);
-    allocFloatVec(&temp_upper, maxLayerSize*maxLayerSize);
-    allocFloatVec(&temp_lower, maxLayerSize*maxLayerSize);
+    AllocVec(float, &z_upper, nnet->maxLayerSize);
+    AllocVec(float, &z_lower, nnet->maxLayerSize);
+    AllocVec(float, &a_upper, nnet->maxLayerSize);
+    AllocVec(float, &a_lower, nnet->maxLayerSize);
+    AllocVec(float, &temp_upper, maxLayerSize*maxLayerSize);
+    AllocVec(float, &temp_lower, maxLayerSize*maxLayerSize);
 
     struct Matrix Z_upper = {z_upper, 1, inputSize};
     struct Matrix A_upper = {a_upper, 1, inputSize};
@@ -902,10 +877,10 @@ int evaluate_interval_equation(struct NNet *network,\
     float **equation_upper, **equation_lower, **new_equation_upper, **new_equation_lower;
 
 
-    allocFloatArray(&equation_upper, maxLayerSize, inputSize+1);
-    allocFloatArray(&equation_lower, maxLayerSize, inputSize+1);
-    allocFloatArray(&new_equation_upper, maxLayerSize, inputSize+1);
-    allocFloatArray(&new_equation_lower, maxLayerSize, inputSize+1);
+    AllocArray(float, &equation_upper, maxLayerSize, inputSize+1);
+    AllocArray(float, &equation_lower, maxLayerSize, inputSize+1);
+    AllocArray(float, &new_equation_upper, maxLayerSize, inputSize+1);
+    AllocArray(float, &new_equation_lower, maxLayerSize, inputSize+1);
 
 
     float tempVal_upper, tempVal_lower;
@@ -1014,10 +989,10 @@ int evaluate_interval_equation(struct NNet *network,\
 
     }
 
-    freeFloatArray(&equation_lower, maxLayerSize);
-    freeFloatArray(&equation_upper, maxLayerSize);
-    freeFloatArray(&new_equation_lower, maxLayerSize);
-    freeFloatArray(&new_equation_upper, maxLayerSize);
+    FreeArray(&equation_lower, maxLayerSize);
+    FreeArray(&equation_upper, maxLayerSize);
+    FreeArray(&new_equation_lower, maxLayerSize);
+    FreeArray(&new_equation_upper, maxLayerSize);
 
     return 1;
 
@@ -1142,11 +1117,11 @@ int forward_prop_interval_equation(struct NNet *network,\
     float *equation_upper, *equation_lower, *new_equation_upper, *new_equation_lower;
 
 
-    allocIntArray(&R, numLayers, maxLayerSize);
-    allocFloatVec(&equation_upper, (inputSize+1)*maxLayerSize);
-    allocFloatVec(&equation_lower, (inputSize+1)*maxLayerSize);
-    allocFloatVec(&new_equation_upper, (inputSize+1)*maxLayerSize);
-    allocFloatVec(&new_equation_lower, (inputSize+1)*maxLayerSize);
+    AllocArray(int, &R, numLayers, maxLayerSize);
+    AllocVec(float, &equation_upper, (inputSize+1)*maxLayerSize);
+    AllocVec(float, &equation_lower, (inputSize+1)*maxLayerSize);
+    AllocVec(float, &new_equation_upper, (inputSize+1)*maxLayerSize);
+    AllocVec(float, &new_equation_lower, (inputSize+1)*maxLayerSize);
 
     /* equation is the temp equation for each layer */
     /*
@@ -1189,8 +1164,8 @@ int forward_prop_interval_equation(struct NNet *network,\
         struct Matrix weights = nnet->weights[layer];
         struct Matrix bias = nnet->bias[layer];
 
-        allocFloatVec(&p, weights.col*weights.row);
-        allocFloatVec(&n, weights.col*weights.row);
+        AllocVec(float, &p, weights.col*weights.row);
+        AllocVec(float, &n, weights.col*weights.row);
 
 
         memset(new_equation_upper, 0, sizeof(float)*(inputSize+1)*maxLayerSize);
@@ -1362,7 +1337,7 @@ int forward_prop_interval_equation(struct NNet *network,\
     }
 
     backward_prop(nnet, grad, R);
-    freeIntArray(R, numLayers);
+    FreeArray(&R, numLayers);
     free(new_equation_lower);
     free(new_equation_upper);
     free(equation_lower);
