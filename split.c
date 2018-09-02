@@ -111,7 +111,7 @@ int check_min_p7(struct NNet *nnet, struct Interval *output)
 int check_misclassified(struct NNet *nnet, struct Interval *output)
 {
     float trueClassPredLow = output->lower_matrix.data[nnet->target];
-    float trueClassPredHigh = output->lower_matrix.data[nnet->target];
+    float trueClassPredHigh = output->upper_matrix.data[nnet->target];
     for (int i = 0; i < nnet->outputSize; i++) {
         if (i == nnet->target)
             continue;
