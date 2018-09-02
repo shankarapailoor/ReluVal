@@ -411,6 +411,7 @@ int check_functions1(struct NNet *nnet, struct Matrix *output)
         return check_not_min1(nnet, output);
     }
 
+
     return -1;
 
 }

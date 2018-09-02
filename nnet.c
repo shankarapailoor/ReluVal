@@ -11,8 +11,10 @@
 
 
 #include "nnet.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 
 int PROPERTY = 5;
 char *LOG_FILE = "logs/log.txt";
@@ -69,7 +71,7 @@ struct NNet *load_network(const char* filename, int target)
         exit(1);
     }
 
-    int bufferSize = 10240;
+    int bufferSize = 20240;
     char *buffer = (char*)malloc(sizeof(char)*bufferSize);
     char *record, *line;
     int i=0, layer=0, row=0, j=0, param=0;
@@ -90,6 +92,7 @@ struct NNet *load_network(const char* filename, int target)
     nnet->outputSize = atoi(strtok(NULL,",\n"));
     nnet->maxLayerSize = atoi(strtok(NULL,",\n"));
 
+
     nnet->layerSizes = (int*)malloc(sizeof(int)*(nnet->numLayers+1));
     line = fgets(buffer,bufferSize,fstream);
     record = strtok(line,",\n");
@@ -98,6 +101,7 @@ struct NNet *load_network(const char* filename, int target)
         nnet->layerSizes[i] = atoi(record);
         record = strtok(NULL,",\n");
     }
+
 
     line = fgets(buffer,bufferSize,fstream);
     record = strtok(line,",\n");
@@ -129,7 +133,6 @@ struct NNet *load_network(const char* filename, int target)
         nnet->means[i] = (float)atof(record);
         record = strtok(NULL,",\n");
     }
-
     nnet->ranges = (float*)malloc(sizeof(float)*(nnet->inputSize+1));
     line = fgets(buffer,bufferSize,fstream);
     record = strtok(line,",\n");
@@ -156,7 +159,7 @@ struct NNet *load_network(const char* filename, int target)
         }
 
     }
-    
+
     layer = 0;
     param = 0;
     i=0;
@@ -167,7 +170,6 @@ struct NNet *load_network(const char* filename, int target)
     float w = 0.0;
 
     while ((line = fgets(buffer,bufferSize,fstream)) != NULL) {
-
         if (i >= nnet->layerSizes[layer+1]) {
 
             if (param==0) {
@@ -184,7 +186,7 @@ struct NNet *load_network(const char* filename, int target)
 
         record = strtok_r(line,",\n", &tmpptr);
 
-        while (record != NULL) {   
+        while (record != NULL) {
             w = (float)atof(record);
             nnet->matrix[layer][param][i][j] = w;
             j++;
@@ -210,7 +212,7 @@ struct NNet *load_network(const char* filename, int target)
 
         int n=0;
 
-        if (PROPERTY != 1) {
+        if (PROPERTY != 1 && PROPERTY != 0) {
 
             /* weights in the last layer minus the weights of true label output. */
             if (layer == nnet->numLayers-1) {
@@ -335,9 +337,29 @@ void destroy_network(struct NNet *nnet)
  * Load the inputs of all the predefined properties
  * It takes in the property and input pointers
  */
-void load_inputs(int PROPERTY, int inputSize, float *u, float *l)
+void load_inputs(int PROPERTY, int inputSize, float *u, float *l, char *property_file)
 {
 
+    if (PROPERTY == 0) {
+        int j;
+        ssize_t ret, read;
+        char *line, *record;
+
+        assert(property_file != NULL);
+
+        FILE *fp = fopen(property_file, "r");
+        if (!fp) {
+            perror("fopen");
+            exit(1);
+        }
+
+        while((ret = getline(&line, &read, fp)) != -1) {
+            record = strtok(line,",\n");
+            l[j] = atof(record);
+            record = strtok(NULL, ",\n");
+            u[j++] = atof(record);
+        }
+    }
     if (PROPERTY == 1) {
         float upper[] = {60760,3.141592,3.141592,1200,60};
         float lower[] = {55947.691,-3.141592,-3.141592,1145,0};
@@ -647,6 +669,7 @@ void normalize_input(struct NNet *nnet, struct Matrix *input)
         }
         else {
             input->data[i] = (input->data[i]-nnet->means[i])/(nnet->ranges[i]);
+
         }
 
     }

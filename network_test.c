@@ -57,6 +57,7 @@ int main( int argc, char *argv[])
     //char *FULL_NET_PATH =\
             "nnet/ACASXU_run2a_1_1_batch_2000.nnet";
     char *FULL_NET_PATH;
+    char *property_file;
 
     int target = 0;
 
@@ -69,13 +70,18 @@ int main( int argc, char *argv[])
     }
 
     for (int i=1;i<argc;i++) {
-
+        printf("i: %d\n", i);
+        if (i == argc-1 && PROPERTY==0) {
+            printf("HERE\n");
+            property_file = argv[i];
+            continue;
+        }
         if (i == 1) {
-            PROPERTY = atoi(argv[i]); 
+            PROPERTY = atoi(argv[i]);
             if(PROPERTY<0){
                 printf("No such property defined");
                 exit(1);
-            } 
+            }
         }
 
         if (i == 2) {
@@ -132,7 +138,9 @@ int main( int argc, char *argv[])
     double time_spent;
     int i,j,layer;
 
+    printf("LOADING NET\n");
     struct NNet* nnet = load_network(FULL_NET_PATH, target);
+    printf("LOADED NET\n");
     
     int numLayers    = nnet->numLayers;
     int inputSize    = nnet->inputSize;
@@ -145,7 +153,7 @@ int main( int argc, char *argv[])
 
     struct Matrix input_t = {input_test, 1, 5};
     float u[inputSize], l[inputSize];
-    load_inputs(PROPERTY, inputSize, u, l);
+    load_inputs(PROPERTY, inputSize, u, l, property_file);
 
     struct Matrix input_upper = {u,1,nnet->inputSize};
     struct Matrix input_lower = {l,1,nnet->inputSize};

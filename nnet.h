@@ -69,7 +69,7 @@ void destroy_network(struct NNet *network);
 
 
 /* load the input range of the property */
-void load_inputs(int PROPERTY, int inputSize, float *u, float *l);
+void load_inputs(int PROPERTY, int inputSize, float *u, float *l, char * property_file);
 
 
 /* denormalize input */
