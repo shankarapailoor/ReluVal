@@ -70,9 +70,7 @@ int main( int argc, char *argv[])
     }
 
     for (int i=1;i<argc;i++) {
-        printf("i: %d\n", i);
         if (i == argc-1 && PROPERTY==0) {
-            printf("HERE\n");
             property_file = argv[i];
             continue;
         }
@@ -138,9 +136,7 @@ int main( int argc, char *argv[])
     double time_spent;
     int i,j,layer;
 
-    printf("LOADING NET\n");
     struct NNet* nnet = load_network(FULL_NET_PATH, target);
-    printf("LOADED NET\n");
     
     int numLayers    = nnet->numLayers;
     int inputSize    = nnet->inputSize;
