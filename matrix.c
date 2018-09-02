@@ -162,7 +162,6 @@ void printMatrix(struct Matrix* A)
 {
 
     //printf("%d %d\n", A->row, A->col);
-    int i;
 
     if (A->col == 1) {
         printf("[");
@@ -179,7 +178,7 @@ void printMatrix(struct Matrix* A)
     if (A->row == 1) {
         printf("[");
         int i;
-        for (int i=0;i<A->col;i++) {
+        for (i=0;i<A->col;i++) {
             printf("%f ", A->data[i]);
         }
 
@@ -188,7 +187,7 @@ void printMatrix(struct Matrix* A)
     }
 
     printf("[" );
-
+    int i;
     for (int i=0;i<A->col;i++) {
         printf("[");
         int j;
