@@ -48,8 +48,9 @@ void add_constant(struct Matrix* A, float alpha)
 
     int m = A->row;
     int k = A->col;
+    int i;
 
-    for (int i=0;i<m*k;i++) {
+    for (i=0;i<m*k;i++) {
         A->data[i] += alpha;
     }
 
@@ -127,8 +128,8 @@ void matmul(struct Matrix* A,\
  */
 void multiply(struct Matrix* A, struct Matrix* B)
 {
-
-    for (int i=0;i<A->row*A->col;i++) {
+    int i;
+    for (i=0;i<A->row*A->col;i++) {
         A->data[i] = A->data[i] * B->data[i];
     }
 
@@ -141,8 +142,8 @@ void multiply(struct Matrix* A, struct Matrix* B)
  */
 void relu(struct Matrix* A)
 {
-
-    for (int i=0;i<A->col*A->row;i++) {
+    int i;
+    for (i=0;i<A->col*A->row;i++) {
 
         if (A->data[i] < 0) {
             A->data[i] = 0;
@@ -161,11 +162,13 @@ void printMatrix(struct Matrix* A)
 {
 
     //printf("%d %d\n", A->row, A->col);
+    int i;
 
     if (A->col == 1) {
         printf("[");
+        int i;
 
-        for (int i=0;i<A->row;i++) {
+        for (i=0;i<A->row;i++) {
             printf("%f ", A->data[i]);
         }
 
@@ -175,7 +178,7 @@ void printMatrix(struct Matrix* A)
 
     if (A->row == 1) {
         printf("[");
-
+        int i;
         for (int i=0;i<A->col;i++) {
             printf("%f ", A->data[i]);
         }
@@ -188,8 +191,8 @@ void printMatrix(struct Matrix* A)
 
     for (int i=0;i<A->col;i++) {
         printf("[");
-
-        for(int j=0;j<A->row;j++){
+        int j;
+        for(j=0;j<A->row;j++){
             printf("%f ",A->data[A->row*i+j]);
         }
 
@@ -216,8 +219,9 @@ void fprintMatrix(FILE *fp, struct Matrix* A){
 
     if (A->col == 1) {
         fprintf(fp, "[");
+        int i;
 
-        for (int i=0;i<A->row;i++) {
+        for (i=0;i<A->row;i++) {
             fprintf(fp, "%f ", A->data[i]);
         }
 
@@ -227,7 +231,9 @@ void fprintMatrix(FILE *fp, struct Matrix* A){
 
     if (A->row == 1) {
         fprintf(fp, "[");
-        for(int i=0;i<A->col;i++){
+        int i;
+
+        for(i=0;i<A->col;i++){
             fprintf(fp, "%f ", A->data[i]);
         }
         fprintf(fp, "]\n");
@@ -236,10 +242,12 @@ void fprintMatrix(FILE *fp, struct Matrix* A){
 
     fprintf(fp, "[" );
 
-    for (int i=0;i<A->col;i++) {
+    int i;
+    for (i=0;i<A->col;i++) {
         fprintf(fp, "[");
+        int j;
 
-        for(int j=0;j<A->row;j++){
+        for(j=0;j<A->row;j++){
             fprintf(fp, "%f ",A->data[A->row*i+j]);
         }
 
