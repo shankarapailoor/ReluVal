@@ -108,6 +108,21 @@ int check_min_p7(struct NNet *nnet, struct Interval *output)
 
 }
 
+int check_misclassified(struct NNet *nnet, struct Interval *output)
+{
+    float trueClassPredLow = output->lower_matrix.data[nnet->target];
+    float trueClassPredHigh = output->lower_matrix.data[nnet->target];
+    for (int i = 0; i < nnet->outputSize; i++) {
+        if (i == nnet->target)
+            continue;
+        if (output->lower_matrix.data[i] > trueClassPredLow)
+            return 1;
+        if (output->upper_matrix.data[i] > trueClassPredHigh)
+            return 1;
+    }
+    return 0;
+}
+
 
 int check_not_min_p8(struct NNet *nnet, struct Interval *output)
 {
@@ -267,6 +282,9 @@ int check_not_min1_p11(struct NNet *nnet, struct Matrix *output)
 int check_functions(struct NNet *nnet, struct Interval *output)
 {
 
+    if (PROPERTY == 0) {
+        return check_misclassified(nnet, output);
+    }
     if (PROPERTY ==1) {
         return check_max_constant(nnet, output);
     }
