@@ -188,7 +188,7 @@ void printMatrix(struct Matrix* A)
 
     printf("[" );
     int i;
-    for (int i=0;i<A->col;i++) {
+    for (i=0;i<A->col;i++) {
         printf("[");
         int j;
         for(j=0;j<A->row;j++){

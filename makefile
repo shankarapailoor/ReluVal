@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-I /opt/OpenBLAS/include/ 
+CFLAGS=-std=gnu99 -I /opt/OpenBLAS/include/
 LDFLAGS= -L/opt/OpenBLAS/lib -lopenblas -lpthread -lm
 DEPS=matrix.h nnet.h split.h
 
