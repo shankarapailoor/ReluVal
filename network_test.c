@@ -184,10 +184,12 @@ int main( int argc, char *argv[])
 
     printf("running network %s with target: %d\n",
         FULL_NET_PATH, nnet->target);
+   
+#ifdef DEBUG
     printf("input ranges:\n");
-
     printMatrix(&input_upper);
     printMatrix(&input_lower);
+#endif
 
     for (int i=0;i<inputSize;i++) {
 

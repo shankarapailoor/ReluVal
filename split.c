@@ -10,6 +10,7 @@
  */
 
 #include "split.h"
+#include "util.h"
 
 #define AVG_WINDOW 5
 #define MAX_THREAD 5
@@ -734,11 +735,14 @@ int split_interval(struct NNet *nnet, struct Interval *input,\
 {
 
     int inputSize = nnet->inputSize;
-    int outputSize = nnet->outputSize; 
-    float input_upper1[nnet->inputSize];
-    float input_lower1[nnet->inputSize]; 
-    float input_upper2[nnet->inputSize];
-    float input_lower2[nnet->inputSize];
+    int outputSize = nnet->outputSize;
+    float *input_upper1, *input_upper2;
+    float *input_lower1, *input_lower2;
+
+    AllocVec(float, &input_upper1, nnet->inputSize);
+    AllocVec(float, &input_upper2, nnet->inputSize);
+    AllocVec(float, &input_lower1, nnet->inputSize);
+    AllocVec(float, &input_lower2, nnet->inputSize);
     
     pthread_mutex_lock(&lock);
 
@@ -920,7 +924,7 @@ int split_interval(struct NNet *nnet, struct Interval *input,\
 
                 pthread_mutex_unlock(&lock);
 
-                return 0;
+                goto ret0;
             }
 
             //printf("1\n");
@@ -931,7 +935,7 @@ int split_interval(struct NNet *nnet, struct Interval *input,\
 
             if (depth >= 25 || upper-middle <= ADV_THRESHOLD) {
                 check_adv(nnet, input);
-                return 0;
+                goto ret0;
             }
 
         }
@@ -1058,7 +1062,7 @@ int split_interval(struct NNet *nnet, struct Interval *input,\
             pthread_mutex_unlock(&lock);
         }
 
-        return 0;
+        goto ret0;
     }
     else {
 
@@ -1113,8 +1117,18 @@ int split_interval(struct NNet *nnet, struct Interval *input,\
         pthread_mutex_unlock(&lock);
 
         }
-
+        free(input_upper1);
+        free(input_upper2);
+        free(input_lower1);
+        free(input_lower2);
         return result;
     }
-    
+
+    ret0:
+        free(input_upper1);
+        free(input_upper2);
+        free(input_lower1);
+        free(input_lower2);
+        return 0;
+
 }

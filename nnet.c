@@ -11,6 +11,7 @@
 
 
 #include "nnet.h"
+#include "util.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,39 +20,6 @@
 int PROPERTY = 5;
 char *LOG_FILE = "logs/log.txt";
 FILE *fp;
-
-#define AllocVec(type, ptr, size) \
-do { \
-    *ptr = (type *) calloc(size, sizeof(type)); \
-    if (!(*ptr)) { \
-        perror("calloc"); \
-        exit(1); \
-    } \
-} while(0)\
-
-#define AllocArray(type, ptr, row, col) \
-do { \
-    int j; \
-    *ptr = (type **) calloc(row, sizeof(type *)); \
-    if (!(*ptr)) { \
-        perror(__FUNCTION__); \
-        exit(1); \
-    } \
-    for(j = 0; j < row; j++) { \
-        AllocVec(type, &((*ptr)[j]), col); \
-    } \
-} while(0)\
-
-#define FreeArray(ptr, row) \
-do { \
-    int i; \
-    for(i = 0; i < row; i++) { \
-        free((*ptr)[i]); \
-    } \
-    free(*ptr); \
-} while(0)\
-
-
 
 /*
  * Load_network is a function modified from Reluplex
@@ -699,8 +667,10 @@ int forward_prop(struct NNet *network, struct Matrix *input, struct Matrix *outp
     int inputSize    = nnet->inputSize;
     int outputSize   = nnet->outputSize;
 
-    float z[nnet->maxLayerSize];
-    float a[nnet->maxLayerSize];
+    float *z, *a;
+
+    AllocVec(float, &z, nnet->maxLayerSize);
+    AllocVec(float, &a, nnet->maxLayerSize);
     struct Matrix Z = {z, 1, inputSize};
     struct Matrix A = {a, 1, inputSize};
 
@@ -725,6 +695,9 @@ int forward_prop(struct NNet *network, struct Matrix *input, struct Matrix *outp
     output->row = A.row;
     output->col = A.col;
 
+    free(z);
+    free(a);
+
     return 1;
 }
 
@@ -746,9 +719,10 @@ int evaluate(struct NNet *network, struct Matrix *input, struct Matrix *output)
 
     float ****matrix = nnet->matrix;
 
-    float tempVal;
-    float z[nnet->maxLayerSize];
-    float a[nnet->maxLayerSize];
+    float tempVal, *z, *a;
+
+    AllocVec(float, &z, nnet->maxLayerSize);
+    AllocVec(float, &a, nnet->maxLayerSize);
 
     for (i=0;i<nnet->inputSize;i++) {
         z[i] = input->data[i];
@@ -786,7 +760,9 @@ int evaluate(struct NNet *network, struct Matrix *input, struct Matrix *output)
     for (i=0; i<outputSize; i++) {
         output->data[i] = a[i];
     }
-    
+
+    free(z);
+    free(a);
     return 1;
 
 }
@@ -812,10 +788,14 @@ int evaluate_interval(struct NNet *network,\
     float ****matrix = nnet->matrix;
 
     float tempVal_upper, tempVal_lower;
-    float z_upper[nnet->maxLayerSize];
-    float z_lower[nnet->maxLayerSize];
-    float a_upper[nnet->maxLayerSize];
-    float a_lower[nnet->maxLayerSize];
+
+
+    float *z_upper, *z_lower, *a_upper, *a_lower;
+
+    AllocVec(float, &z_upper, nnet->maxLayerSize);
+    AllocVec(float, &z_lower, nnet->maxLayerSize);
+    AllocVec(float, &a_upper, nnet->maxLayerSize);
+    AllocVec(float, &a_lower, nnet->maxLayerSize);
 
     for (i=0;i < nnet->inputSize;i++) {
         z_upper[i] = input->upper_matrix.data[i];
@@ -873,6 +853,9 @@ int evaluate_interval(struct NNet *network,\
         output->upper_matrix.data[i] = a_upper[i];
         output->lower_matrix.data[i] = a_lower[i];
     }
+
+    free(z_lower); free(z_upper);
+    free(a_lower); free(a_upper);
 
     return 1;
 }
@@ -1038,10 +1021,14 @@ void backward_prop(struct NNet *nnet,\
     int outputSize   = nnet->outputSize;
     int maxLayerSize   = nnet->maxLayerSize;
 
-    float grad_upper[maxLayerSize];
-    float grad_lower[maxLayerSize];
-    float grad1_upper[maxLayerSize];
-    float grad1_lower[maxLayerSize];
+    float *grad_upper, *grad_lower;
+    float *grad1_upper, *grad1_lower;
+
+    AllocVec(float, &grad_upper, nnet->maxLayerSize);
+    AllocVec(float, &grad_lower, nnet->maxLayerSize);
+    AllocVec(float, &grad1_upper, nnet->maxLayerSize);
+    AllocVec(float, &grad1_lower, nnet->maxLayerSize);
+
 
     memcpy(grad_upper, nnet->matrix[numLayers-1][0][nnet->target],\
                     sizeof(float)*nnet->layerSizes[numLayers-1]);
@@ -1107,6 +1094,10 @@ void backward_prop(struct NNet *nnet,\
         }
 
     }
+    free(grad1_lower);
+    free(grad1_upper);
+    free(grad_lower);
+    free(grad_upper);
 }
 
 
