@@ -341,9 +341,9 @@ void load_inputs(int PROPERTY, int inputSize, float *u, float *l, char *property
 {
 
     if (PROPERTY == 0) {
-        int j;
-        ssize_t ret, read;
-        char *line, *record;
+        int j = 0;
+        ssize_t ret, read = 0;
+        char *line = NULL, *record;
 
         assert(property_file != NULL);
 
@@ -359,6 +359,7 @@ void load_inputs(int PROPERTY, int inputSize, float *u, float *l, char *property
             record = strtok(NULL, ",\n");
             u[j++] = atof(record);
         }
+        fclose(fp);
     }
     if (PROPERTY == 1) {
         float upper[] = {60760,3.141592,3.141592,1200,60};
@@ -1043,9 +1044,9 @@ void backward_prop(struct NNet *nnet,\
     float grad1_lower[maxLayerSize];
 
     memcpy(grad_upper, nnet->matrix[numLayers-1][0][nnet->target],\
-                    sizeof(float)*maxLayerSize);
+                    sizeof(float)*nnet->layerSizes[numLayers-1]);
     memcpy(grad_lower, nnet->matrix[numLayers-1][0][nnet->target],\
-                    sizeof(float)*maxLayerSize);
+                    sizeof(float)*nnet->layerSizes[numLayers-1]);
 
     for (layer=numLayers-2;layer>-1;layer--){ 
         float **weights = nnet->matrix[layer][0];
@@ -1067,7 +1068,7 @@ void backward_prop(struct NNet *nnet,\
 
                     if (weights[j][i] >= 0) {
                         grad1_upper[i] += weights[j][i]*grad_upper[j]; 
-                        grad1_lower[i] += weights[j][i]*grad_lower[j]; 
+                        grad1_lower[i] += weights[j][i]*grad_lower[j];
                     }
                     else {
                         grad1_upper[i] += weights[j][i]*grad_lower[j]; 

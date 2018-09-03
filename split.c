@@ -112,7 +112,6 @@ int check_misclassified(struct NNet *nnet, struct Interval *output)
 {
     float trueClassPredLow = output->lower_matrix.data[nnet->target];
     for (int i = 0; i < nnet->outputSize; i++) {
-        printf("%f %f\n", output->lower_matrix.data[i], output->upper_matrix.data[i]);
         if (i == nnet->target)
             continue;
         if (trueClassPredLow < output->upper_matrix.data[i])

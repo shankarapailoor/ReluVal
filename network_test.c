@@ -182,8 +182,8 @@ int main( int argc, char *argv[])
     int split_feature = -1;
     int depth = 0;
 
-    printf("running property %d with network %s\n",\
-                PROPERTY, FULL_NET_PATH);
+    printf("running network %s with target: %d\n",
+        FULL_NET_PATH, nnet->target);
     printf("input ranges:\n");
 
     printMatrix(&input_upper);
