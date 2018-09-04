@@ -21,6 +21,7 @@ int NEED_FOR_ONE_RUN = 0;
 int input_depth = 0;
 int adv_found = 0;
 int count = 0;
+int splits = 0;
 int thread_tot_cnt  = 0;
 int smear_cnt = 0;
 
@@ -747,12 +748,9 @@ int split_interval(struct NNet *nnet, struct Interval *input,\
     pthread_mutex_lock(&lock);
 
     if (adv_found) {
-
-    pthread_mutex_unlock(&lock);
-
         return 0;
     }
-    
+    splits += 1;
     pthread_mutex_unlock(&lock);
    
     memcpy(input_upper1, input->upper_matrix.data,\

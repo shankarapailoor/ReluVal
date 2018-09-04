@@ -31,6 +31,8 @@ extern int NEED_FOR_ONE_RUN;
 /* set 1 if a concrete adversarial example is
 found */
 extern int adv_found;
+//number of splits made during verification
+extern int splits;
 
 /* Mode for faster search concrete
 adversarial examples */

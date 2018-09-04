@@ -256,6 +256,7 @@ int main( int argc, char *argv[])
     if (isOverlap == 0 && adv_found == 0) {
         printf("\nNo adv!\n");
     }
+    printf("num splits: %d\n", splits);
 
     
     printf("time: %f \n\n\n", time_spent);

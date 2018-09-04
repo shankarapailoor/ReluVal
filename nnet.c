@@ -1168,6 +1168,7 @@ int forward_prop_interval_equation(struct NNet *network,\
     float tempVal_upper=0.0, tempVal_lower=0.0;
     float upper_s_lower=0.0;
 
+    //Set diagonals for input to 1
     for (i=0;i < nnet->inputSize;i++) {
         equation_lower[i*(inputSize+1)+i] = 1;
         equation_upper[i*(inputSize+1)+i] = 1;
@@ -1175,7 +1176,7 @@ int forward_prop_interval_equation(struct NNet *network,\
 
     for (layer=0;layer<(numLayers);layer++) {
 
-        float *p, *n;
+        float *p, *n; //represent the positive and negative weights for the layer
         struct Matrix weights = nnet->weights[layer];
         struct Matrix bias = nnet->bias[layer];
 
@@ -1211,11 +1212,14 @@ int forward_prop_interval_equation(struct NNet *network,\
 
         matmul(&equation_inteval.upper_matrix, &pos_weights,\
                         &new_equation_inteval.upper_matrix);
+        //new_equation_interval.lower_matrix = I_upper*pos_weights + I_lower*neg_weights
         matmul_with_bias(&equation_inteval.lower_matrix, &neg_weights,\
                         &new_equation_inteval.upper_matrix);
 
+        //
         matmul(&equation_inteval.lower_matrix, &pos_weights,\
                         &new_equation_inteval.lower_matrix);
+        //new_equation_interval.lower_matrix= I_lower*pos_weights + I_upper*neg_weights
         matmul_with_bias(&equation_inteval.upper_matrix, &neg_weights,\
                         &new_equation_inteval.lower_matrix);
 
@@ -1226,7 +1230,6 @@ int forward_prop_interval_equation(struct NNet *network,\
             if (NEED_OUTWARD_ROUND) {
 
                 for(k=0;k<inputSize;k++){
-
                     if (new_equation_lower[k+i*(inputSize+1)] >= 0) {
                         tempVal_lower += new_equation_lower[k+i*(inputSize+1)] *\
                                     input->lower_matrix.data[k] - OUTWARD_ROUND;
