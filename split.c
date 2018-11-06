@@ -13,7 +13,7 @@
 #include "util.h"
 
 #define AVG_WINDOW 5
-#define MAX_THREAD 5
+#define MAX_THREAD 20
 #define MIN_DEPTH_PER_THREAD 5 
 
 int NEED_PRINT = 0;
@@ -539,7 +539,6 @@ int direct_run_check(struct NNet *nnet,\
 
     if (adv_found) {
         pthread_mutex_unlock(&lock);
-
         return 0;
     }
 
@@ -583,6 +582,7 @@ int direct_run_check(struct NNet *nnet,\
 
             progress++;
 
+            
             if(!adv_found){
                 //fprintf(stderr, "progress=%d/1024\r", progress);
                 printf("progress: [");
@@ -611,7 +611,7 @@ int direct_run_check(struct NNet *nnet,\
 
         pthread_mutex_unlock(&lock);
 
-        //printf("progress,%d/1024\n", progress);
+        printf("progress,%d/1024\n", progress);
     }
     
     if (isOverlap && NEED_FOR_ONE_RUN == 0) {
@@ -663,6 +663,7 @@ int direct_run_check(struct NNet *nnet,\
 
     }
 
+    
     if(!adv_found && depth==0){
         printf("progress: [");
 
@@ -672,7 +673,7 @@ int direct_run_check(struct NNet *nnet,\
 
         printf("] %0.2f%%\n", 100.00);
     }
-
+    
     return isOverlap;
 
 }
@@ -748,9 +749,18 @@ int split_interval(struct NNet *nnet, struct Interval *input,\
     pthread_mutex_lock(&lock);
 
     if (adv_found) {
+        free(input_upper1);
+        free(input_upper2);
+        free(input_lower1);
+        free(input_lower2);
+        pthread_mutex_unlock(&lock);
         return 0;
     }
     splits += 1;
+    if (splits % 500 == 0) {
+        printf("%d splits\n", splits);
+        fflush(stdout);
+    }
     pthread_mutex_unlock(&lock);
    
     memcpy(input_upper1, input->upper_matrix.data,\

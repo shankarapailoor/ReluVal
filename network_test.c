@@ -190,7 +190,6 @@ int main( int argc, char *argv[])
     printMatrix(&input_upper);
     printMatrix(&input_lower);
 #endif
-
     for (int i=0;i<inputSize;i++) {
 
         if (input_interval.upper_matrix.data[i] <\
@@ -240,10 +239,12 @@ int main( int argc, char *argv[])
             //forward_prop_interval_equation(nnet,\
                     &input_interval, &output_interval,\
                     &grad_interval);
+            printf("BEFORE\n");
             isOverlap = direct_run_check(nnet,\
                     &input_interval, &output_interval,\
                     &grad_interval, depth, feature_range,\
                     feature_range_length, split_feature);
+            printf("AFTER\n");
         }
 
     }
@@ -257,9 +258,8 @@ int main( int argc, char *argv[])
         printf("\nNo adv!\n");
     }
     printf("num splits: %d\n", splits);
-
-    
     printf("time: %f \n\n\n", time_spent);
+    fflush(stdout);
 
     destroy_network(nnet);
     free(feature_range);

@@ -1,6 +1,6 @@
 CC=gcc
-CFLAGS=-std=gnu99 -I /opt/OpenBLAS/include/
-LDFLAGS= -L/opt/OpenBLAS/lib -lopenblas -lpthread -lm
+CFLAGS=-std=gnu99 -I /home/spailoor/libs/include/
+LDFLAGS= -L/home/spailoor/libs/lib/ -lopenblas -lpthread -lm
 DEPS=matrix.h nnet.h split.h
 
 all: network_test 
