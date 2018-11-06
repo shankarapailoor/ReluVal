@@ -1,0 +1,30 @@
+Repro Steps:
+
+We are trying to verify a robustness property with reluval. The network can be found in this repo in file: acas_xu_1_1_RELUVAL.txt. The input constraints are:
+
+-0.275, -0.125
+-0.325, -0.175
+-0.575, -0.425
+-0.375, -0.225
+-0.515, -0.365
+
+The ground truth label should be 0. This input space should be marked as not robust:
+
+point: {-0.126, -0.31, -0.48, -0.34, -0.48} assigned label 0.  
+point: {-.274, -.324, -.574, -.374, -.514} assigned label 1.
+
+However, ReluVal marks this interval as No Adv!. You can see this by running:
+
+ $ ./network_test 0 acas_xu_1_1_RELUVAL.txt 0 ACASXU_Robustness_Property16_sanitized.bmk 
+
+We have provided a demo.c file which shows this.
+
+1) make demo
+2) ./demo
+
+shankara@reluval-eval:~/ReluVal$ ./demo 
+LOADED NETWORK
+0.000000,-0.002797,-0.002729,-0.002728,-0.002709,
+0.000000,0.009100,0.002711,0.003095,-0.001484,
+
+This first output corresponds to the logits of the point with label 0 and the second is the counterexample. 

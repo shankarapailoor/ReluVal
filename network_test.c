@@ -60,7 +60,6 @@ int main( int argc, char *argv[])
     char *property_file;
 
     int target = 0;
-
     if (argc > 9 || argc < 4) {
         printf("please specify a network\n");
         printf("./network_test [property] [network] "
@@ -68,7 +67,6 @@ int main( int argc, char *argv[])
             "[test for one run] [check mode]\n");
         exit(1);
     }
-
     for (int i=1;i<argc;i++) {
         if (i == argc-1 && PROPERTY==0) {
             property_file = argv[i];
@@ -176,7 +174,6 @@ int main( int argc, char *argv[])
 
     //if (signal(SIGQUIT, sig_handler) == SIG_ERR)
         //printf("\ncan't catch SIGQUIT\n");
-
     int n = 0;
     int feature_range_length = 0;
     int split_feature = -1;

@@ -253,10 +253,8 @@ struct NNet *load_network(const char* filename, int target)
 
     nnet->weights = weights;
     nnet->bias = bias;
-
     free(buffer);
     fclose(fstream);
-
     return nnet;
 
 }
@@ -690,11 +688,9 @@ int forward_prop(struct NNet *network, struct Matrix *input, struct Matrix *outp
         Z.col = A.col;
         
     }
-
     memcpy(output->data, A.data, A.row*A.col*sizeof(float));
     output->row = A.row;
     output->col = A.col;
-
     free(z);
     free(a);
 
