@@ -39,7 +39,7 @@ struct NNet *load_network(const char* filename, int target)
         exit(1);
     }
 
-    int bufferSize = 20240;
+    int bufferSize = 200240;
     char *buffer = (char*)malloc(sizeof(char)*bufferSize);
     char *record, *line;
     int i=0, layer=0, row=0, j=0, param=0;

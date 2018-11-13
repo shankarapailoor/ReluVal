@@ -47,7 +47,7 @@ extern int leaf_num;
 extern int progress;
 
 /* Time record */
-extern struct timeval start,finish, last_finish;
+extern struct timespec start,finish, last_finish;
 
 /* If the input range is less than ADV_THRESHOLD, 
 then it will check for concrete adversarial example*/

@@ -134,8 +134,9 @@ int main( int argc, char *argv[])
     double time_spent;
     int i,j,layer;
 
+    printf("LOADING NETWORK\n");
     struct NNet* nnet = load_network(FULL_NET_PATH, target);
-    
+    printf("LOADED NETWORK\n");    
     int numLayers    = nnet->numLayers;
     int inputSize    = nnet->inputSize;
     int outputSize   = nnet->outputSize;
@@ -216,8 +217,8 @@ int main( int argc, char *argv[])
     //evaluate(nnet, &input_t, &output);
     //forward_prop(nnet, &input_t,&output);
     //printMatrix(&output);
-    
-    gettimeofday(&start, NULL);
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &start);
+    //gettimeofday(&start, NULL);
     int isOverlap = 0;
     float avg[100] = {0};
 
@@ -246,10 +247,11 @@ int main( int argc, char *argv[])
 
     }
     
-    gettimeofday(&finish, NULL);
-    time_spent = ((float)(finish.tv_sec - start.tv_sec) *\
-            1000000 + (float)(finish.tv_usec - start.tv_usec)) /\
-            1000000;
+    //gettimeofday(&finish, NULL);
+    clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &finish);
+    printf("%d\n", finish.tv_sec - start.tv_sec);
+    time_spent = (float) (finish.tv_sec - start.tv_sec)  + ((float)(finish.tv_nsec - start.tv_nsec)) /\
+            1000000000;
 
     if (isOverlap == 0 && adv_found == 0) {
         printf("\nNo adv!\n");

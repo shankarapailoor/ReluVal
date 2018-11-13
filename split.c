@@ -35,7 +35,7 @@ float total_avg_depth = 0;
 int leaf_num = 0;
 float max_depth = 0;
 
-struct timeval start,finish,last_finish;
+struct timespec start,finish,last_finish;
 
 
 /*
